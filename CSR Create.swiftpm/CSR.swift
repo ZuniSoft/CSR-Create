@@ -17,11 +17,25 @@ class CSR {
                 stateOrProvinceName: String,
                 localityName: String,
                 emailAddress: String,
-                description: String) -> String {
-        let tagPrivate = "com.csr.private.rsa"
-        let tagPublic = "com.csr.public.rsa"
-        let keyAlgorithm = KeyAlgorithm.rsa(signatureType: .sha512)
-        let sizeOfKey = keyAlgorithm.availableKeySizes.last!
+                description: String,
+                format: String,
+                keySize: String,
+                sigType: String) -> String {
+        
+        let tagPrivate = "com.zunisoft.csr.private.rsa"
+        let tagPublic = "com.zunisoft.csr.public.rsa"
+        
+        var keyAlgorithm = KeyAlgorithm.rsa(signatureType: .sha1)
+        
+        if sigType == "sha1" {
+            keyAlgorithm = KeyAlgorithm.rsa(signatureType: .sha1)
+        } else if sigType == "sha256" {
+            keyAlgorithm = KeyAlgorithm.rsa(signatureType: .sha256)
+        } else if sigType == "sha512" {
+            keyAlgorithm = KeyAlgorithm.rsa(signatureType: .sha512)
+        }
+        
+        let sizeOfKey = Int(keySize)! //keyAlgorithm.availableKeySizes.last!
 
         var csrFinal = ""
         
@@ -48,9 +62,7 @@ class CSR {
                               tagPublic: tagPublic)
         guard let publicKeyBits = potentialPublicKeyBits,
               potentialPublicKeyBlockSize != nil else {
-                  //XCTAssertNotNil(potentialPublicKeyBits, "Private key bits not generated")
-                  //XCTAssertNotNil(potentialPublicKeyBlockSize, "Public key block size not generated")
-                  return "Private key bits not generated"
+                  return "Error: private key bits not generated"
               }
 
         //Initiale CSR
@@ -66,21 +78,22 @@ class CSR {
         //Build the CSR
         let csrBuild = csr.buildAndEncodeDataAsString(publicKeyBits, privateKey: privateKey)
         let csrBuild2 = csr.buildCSRAndReturnString(publicKeyBits, privateKey: privateKey)
-        if let csrRegular = csrBuild {
-            print("CSR string no header and footer")
-            //print(csrRegular)
-            csrFinal = csrRegular
-            //XCTAssertGreaterThan(csrBuild!.count, 0, "CSR contains no data")
+        if format == "Without Headers" {
+            if let csrRegular = csrBuild {
+                csrFinal = csrRegular
+            } else {
+                if csrBuild == nil {
+                    csrFinal = "Error: CSR without header not generated"
+                }
+            }
         } else {
-            //XCTAssertNotNil(csrBuild, "CSR with header not generated")
-        }
-        if let csrWithHeaderFooter = csrBuild2 {
-            print("CSR string with header and footer")
-            //print(csrWithHeaderFooter)
-            csrFinal = csrWithHeaderFooter
-            //XCTAssertTrue(csrBuild2!.contains("BEGIN"), "CSR string builder isn't complete")
-        } else {
-            //XCTAssertNotNil(csrBuild2, "CSR with header not generated")
+            if let csrWithHeaderFooter = csrBuild2 {
+                csrFinal = csrWithHeaderFooter
+            } else {
+                if csrBuild2 == nil {
+                    csrFinal = "Error: CSR with header not generated"
+                }
+            }
         }
         return csrFinal
     }

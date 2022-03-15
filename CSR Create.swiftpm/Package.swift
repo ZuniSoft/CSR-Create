@@ -19,7 +19,7 @@ let package = Package(
             bundleIdentifier: "com.zunisoft.ios.csrcreate",
             teamIdentifier: "S63L4926ND",
             displayVersion: "1.0",
-            bundleVersion: "1",
+            bundleVersion: "2",
             iconAssetName: "AppIcon",
             accentColorAssetName: "AccentColor",
             supportedDeviceFamilies: [
